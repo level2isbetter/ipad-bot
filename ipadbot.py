@@ -14,8 +14,8 @@ intents = discord.Intents.default()
 intents.message_content = True
 
 reddit = praw.Reddit(
-    client_id="hgXRT4GQb_GZYdFEJbynJw",
-    client_secret="KsiI1DyMIC9J2t-Oaz79kt6nswq96g",
+    client_id="YOUR_ID_HERE",
+    client_secret="YOUR_KEY_HERE",
     user_agent="ipad bot v1 by /u/level2isbetter"
 )
 
