@@ -1,8 +1,11 @@
 import emoji
 import requests
-import csv
+import csv, configparser
+import os
 
 from datetime import datetime, timedelta
+
+DEEPLAPIKEY = os.getenv('DEEPL_API_KEY')
 
 # Logging function for translation requests
 def log(user, server, channel, source_lang, target_lang, translateMe, result):
@@ -42,7 +45,7 @@ def add_translate_command(bot):
             source_lang = 'JA'
         
         # my DeepL API key (im stupid and cant get configs to work)
-        url = "https://api-free.deepl.com/v2/translate?auth_key={DEEL_API_KEY}"
+        url = f"https://api-free.deepl.com/v2/translate?auth_key={DEEPLAPIKEY}"
 
         params = {
             'text': translateMe,
