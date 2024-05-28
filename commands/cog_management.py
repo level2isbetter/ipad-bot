@@ -88,6 +88,16 @@ class CogManagement(commands.Cog):
         with open('active_cogs.json', 'w') as f:
             json.dump(active_cogs, f)
 
+    @commands.command()
+    @commands.is_owner()
+    async def reload(self, ctx, cog: str):
+        try:
+            self.bot.unload_extension(f"cogs.{cog}")
+            self.bot.load_extension(f"cogs.{cog}")
+            await ctx.send(f"reloaded {cog}.")
+        except Exception as e:
+            await ctx.send(f"could not reload {cog}. error: {e}")
+
     @commands.Cog.listener()
     async def on_guild_join(guild):
         guild_id = str(guild.id)

@@ -55,6 +55,7 @@ bot.help_command = CustomHelpCommand()
 
 @bot.event
 async def on_ready():
+    await bot.change_presence(activity=discord.Game(name='.zoom'))
     for guild in bot.guilds:
         guild_id = str(guild.id)
         if guild_id in active_cogs:
@@ -78,10 +79,6 @@ async def on_ready():
     for cog in bot.extensions:
         print(cog)
     print(f'We have logged in as {bot.user}')
-
-@tasks.loop(seconds=300)
-async def change_status():
-    await bot.change_presence(activity=discord.Game(name=random.choice(status)))
 
 # Logout command
 @bot.command()
