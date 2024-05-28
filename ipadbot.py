@@ -44,7 +44,7 @@ url_mappings = {
 }
 
 # Create a bot instance
-bot = commands.Bot(command_prefix='.', intents=intents)
+bot = commands.Bot(command_prefix='.', intents=intents, case_insensitive=True)
 
 with open('active_cogs.json', 'r') as f:
     active_cogs = json.load(f)
@@ -133,7 +133,7 @@ async def on_message(message):
     elif message.author.id == 120666750835490819:
         emojis = ["🇱", "🇪", "🇸", "🇧", "🇮", "🇦", "🇳"]
         kreact = random.randint(1,20)
-        if kreact < 3:
+        if kreact == 1:
             for emoji in emojis:
                 await message.add_reaction(emoji)
 

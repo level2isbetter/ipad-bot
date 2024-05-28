@@ -3,6 +3,7 @@ import requests
 import csv, configparser
 import os
 
+from langdetect import detect
 from datetime import datetime, timedelta
 
 DEEPLAPIKEY = os.getenv('DEEPL_API_KEY')
@@ -31,7 +32,7 @@ def add_translate_command(bot):
             target_lang = args[0][1:].upper()
             translateMe = " ".join(args[1:])
         else:
-            target_lang = 'JA' # Japanese default
+            target_lang = 'EN' # Japanese default
             translateMe = " ".join(args)
 
         print("Translation request: ", translateMe)
@@ -39,12 +40,16 @@ def add_translate_command(bot):
             translateMe = await ctx.channel.fetch_message(ctx.message.reference.message_id)
             translateMe = translateMe.content
 
-        if(emoji.demojize(translateMe).isascii()): #Checks if the message is ASCII, will set source lang to english
+        try:
+            source_lang = detect(translateMe).upper()
+        except:
             source_lang = 'EN'
-        else: #otherwise, japanese
-            source_lang = 'JA'
+        #if(emoji.demojize(translateMe).isascii()): #Checks if the message is ASCII, will set source lang to english
+            #source_lang = 'EN'
+        #else: #otherwise, japanese
+            #source_lang = 'JA'
         
-        # my DeepL API key (im stupid and cant get configs to work)
+        # my DeepL API key (im stupid and cant get configs to work) UPDATE: I GOT THEM TO WORK
         url = f"https://api-free.deepl.com/v2/translate?auth_key={DEEPLAPIKEY}"
 
         params = {

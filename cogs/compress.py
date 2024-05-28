@@ -17,11 +17,10 @@ def compress_video(video_path, output_path, target_size):
     clip.write_videofile(output_path, bitrate=f"{int(target_bitrate)}k")
 
 # For fun command - reply to a video, bot will speed up a video by 1.5x and add subway surfers to make it watchable
-class zoomer(commands.Cog):
+class compress(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
 
-    # Downloads the video from the given URL, youtube or discord for now
     async def download_video(self, video_url):
         timestamp = str(int(time.time()))
         youtube = YouTube(video_url)
@@ -42,19 +41,13 @@ class zoomer(commands.Cog):
         with yt_dlp.YoutubeDL(ydl_opts) as ydl:
             ydl.download([twitter_url])
 
-    @commands.command(name="zoom")
-    async def zoom(self, ctx, vertical: str = "bottom", horizontal: str = "right", vspeed: float = 1.5):
-        # Preventing the file from being overwritten if the command is used at the same time in multiple servers
+    @commands.command(name="compress")
+    async def compress(self, ctx, size):
         timestamp = str(int(time.time()))
-        if vertical not in ["top", "bottom"] or horizontal not in ["left", "right"]:
-            await ctx.send("Invalid position")
-            return
-        
-        # Checks if the message is a reply
+
         if ctx.message.reference is not None:
             replied_message = await ctx.fetch_message(ctx.message.reference.message_id)
 
-            # Checks if the original message has attachments
             if replied_message.attachments:
                 video_url = replied_message.attachments[0].url
                 video_path = f'./ipadbot/media/zoomer_{timestamp}.mp4'
@@ -77,35 +70,21 @@ class zoomer(commands.Cog):
                 return
             
             video_path = f'./ipadbot/media/zoomer_{timestamp}.mp4'
-            final_path = f'./ipadbot/media/finalzoom_{timestamp}.mp4'
+            final_path = f'./ipadbot/media/finalcrust_{timestamp}.mp4'
 
             video_clip = VideoFileClip(video_path)
+            resized_clip = video_clip.resize(height=video_clip.size[1] // 2)
 
-            # Speeds up the clip by vspeed, which is default 1.5x
-            sped_clip = speedx(video_clip, factor=vspeed)
+            resized_clip.write_videofile(video_path, audio_codec='aac', audio_bitrate='128k')
 
-            # Adds a subway surfers clip to the video
-            small_clip = VideoFileClip('./ipadbot/media/zoomervid2.mp4')
-            small_clip = small_clip.resize(height=sped_clip.size[1] // 2)
-            small_clip = small_clip.subclip(0, sped_clip.duration)
+            video_clip = speedx(video_clip, factor=5)
+            video_clip.write_videofile(video_path, audio_codec='aac', audio_bitrate='128k')
 
-            # Loop small clip if sped clip is longer
-            if small_clip.duration < video_clip.duration:
-                small_clip = small_clip.loop(duration=sped_clip.duration)
-
-            sped_clip = sped_clip.subclip(0, small_clip.duration)
-
-            final_clip = CompositeVideoClip([sped_clip, small_clip.set_position((horizontal, vertical))])
-            final_clip.write_videofile(final_path)
-
-            if os.path.getsize(final_path) > 8 * 1024 * 1024:
-                compressed_path = f'./ipadbot/media/compressed_{timestamp}.mp4'
-                compress_video(final_path, compressed_path, 8)
-                await ctx.send(f"fixed video for {ctx.author.mention}: ", file=discord.File(compressed_path))
-            else:
-                await ctx.send(f"fixed video for {ctx.author.mention}: ", file=discord.File(final_path))
-        else:
-            await ctx.send("Please reply to a message that has a video")
+            video_clip = speedx(video_clip, factor=0.2)
+            video_clip.write_videofile(video_path, audio_codec='aac', audio_bitrate='128k')
+            
+            compress_clip = compress_video(video_path, final_path, float(size))
+            await ctx.send(f"compressed video for {ctx.author.mention}: ", file=discord.File(final_path))
 
 async def setup(bot):
-    await bot.add_cog(zoomer(bot))
+    await bot.add_cog(compress(bot))
