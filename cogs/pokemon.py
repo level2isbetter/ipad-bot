@@ -1,6 +1,7 @@
 import discord
 import requests, os
 import random, asyncio
+import json
 
 from discord import Embed
 from discord.ext import commands
@@ -8,6 +9,12 @@ from discord.ext import commands
 class pokemon(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
+        self.points_file = './ipadbot/data/points.json'
+        try:
+            with open(self.points_file, 'r') as f:
+                self.points = json.load(f)
+        except FileNotFoundError:
+            self.points = {}
 
     @commands.command()
     async def pokemon(self, ctx, pokemon_name):
@@ -19,8 +26,6 @@ class pokemon(commands.Cog):
 
             embed = Embed(title=name.capitalize(), description=f'Abilities: {abilities}', color=0x3498db)
             embed.set_thumbnail(url=sprite)
-
-            self.add_item(discord.ui.Button(label='Abilities', style=discord.ButtonStyle.primary), embed, abilities)
 
             await ctx.send(embed=embed)
         else:
@@ -50,9 +55,24 @@ class pokemon(commands.Cog):
                 await ctx.send(f'Out of time! The pokemon is {name.capitalize()}')
             else:
                 await ctx.send(f'congrats {guess.author.mention} you got it right :)')
+                user_id = str(guess.author.id)
+                if user_id in self.points:
+                    self.points[user_id] += 1
+                    await ctx.send(f'{guess.author.mention} now has {self.points[user_id]} points')
+                else:
+                    self.points[user_id] = 1
+                    await ctx.send(f'{guess.author.mention} now has {self.points[user_id]} points')
+                with open('./ipadbot/data/points.json', 'w') as f:
+                    json.dump(self.points, f)
 
         else:
             await ctx.send('Could not find information for that pokemon')
+        
+    @commands.command()
+    async def points(self, ctx):
+        user_id = str(ctx.author.id)
+        if user_id in self.points:
+            await ctx.send(f'{ctx.author.mention} you have {self.points[user_id]} points')
 
     def get_pokemon_info(self, pokemon_name):
         response = requests.get(f'https://pokeapi.co/api/v2/pokemon/{pokemon_name}')

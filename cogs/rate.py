@@ -16,11 +16,10 @@ class gaydar(commands.Cog):
         ratenum = random.randint(0,100)
         if member == None:
             message = str(f'You are {ratenum}% gay')
+        elif member.id == 132671044472406017:
+            message = str(f'is that {member.mention}?? hes the gayest of them all.. 10000000000% gay')
         else:
-            if member.mention == 132671044472406017:
-                message = str(f'is that {member.mention}?? hes the gayest of them all.. 10000000000% gay')
-            else:
-                message = str(f'{member.mention} is {ratenum}% gay')
+            message = str(f'{member.mention} is {ratenum}% gay')
         await ctx.send(message)
 
 async def setup(bot):

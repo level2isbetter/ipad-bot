@@ -2,6 +2,7 @@ import discord, asyncio, os, json
 import praw, instaloader, random
 import requests
 import re
+import threading
 
 from discord.ext import commands, tasks
 
@@ -35,6 +36,16 @@ def compress_video(video_path, output_path, target_size):
     target_bitrate = (target_size * 1024 * 8) / clip.duration
 
     clip.write_videofile(output_path, bitrate=f"{int(target_bitrate)}k")
+
+def input_thread(bot):
+    while True:
+        msg = input('Enter a message to send: ')
+        channel_id = int(input('Enter the channel id: '))
+        channel = bot.get_channel(channel_id)
+        if channel:
+            asyncio.run_coroutine_threadsafe(channel.send(msg), bot.loop)
+        else:
+            print(f'No channel found with id {channel_id}')
 
 url_mappings = {
     'https://x.com': 'https://fixupx.com',
@@ -80,6 +91,8 @@ async def on_ready():
         print(cog)
     print(f'We have logged in as {bot.user}')
 
+    threading.Thread(target=input_thread, args=(bot,), daemon=True).start()
+
 # Logout command
 @bot.command()
 @commands.is_owner()
@@ -95,6 +108,29 @@ async def hello(ctx):
 @bot.command()
 async def bust(ctx):
     await ctx.send('https://tenor.com/view/cum-gif-20534148')
+
+@bot.command()
+#@commands.cooldown(1, 86400, commands.BucketType.guild)
+async def backshotmode(ctx):
+    brand = random.randint(1, 100)
+    if ctx.guild.id == 557040114967248897:
+        if brand < 20:
+            absid = '612354895973974018'
+            await ctx.send(f'Backshot mode ON. Todays target: <@{absid}>')
+        else:
+            members = [m for m in ctx.guild.members if not m.bot]
+            if not members:
+                await ctx.send("No members to target.")
+                return
+            member = random.choice(members)
+            await ctx.send(f'Backshot mode ON. Todays target: {member.mention}')
+    else:  
+        members = [m for m in ctx.channel.members if not m.bot]
+        if not members:
+            await ctx.send("No members to target.")
+            return
+        member = random.choice(members)
+        await ctx.send(f'Backshot mode ON. Todays target: {member.mention}')
 
 # A mod command to batch clear messages
 @bot.command()
@@ -133,6 +169,10 @@ async def on_message(message):
         if kreact == 1:
             for emoji in emojis:
                 await message.add_reaction(emoji)
+#    elif message.author.id == 463526991472230400:
+#        zreact = random.randint(1,20)
+#        if zreact == 1:
+#            await message.add_reaction("👎")
 
     for original_url, new_url in url_mappings.items():
         if original_url in message.content:
