@@ -53,20 +53,20 @@ class adventure(commands.Cog):
 
         await ctx.reply(response.text)
     
-    @commands.Cog.listener()
-    async def on_message(self, message):
-        if message.author == self.bot.user:
-            return
+    #@commands.Cog.listener()
+    #async def on_message(self, message):
+        #if message.author == self.bot.user:
+            #return
         
-        if message.reference and message.reference.resolved:
-            replied_message = message.reference.resolved
-            if replied_message.author == self.bot.user:
-                prompt = replied_message.content
+        #if message.reference and message.reference.resolved:
+            #replied_message = message.reference.resolved
+            #if replied_message.author == self.bot.user:
+                #prompt = replied_message.content
 
-                combined_prompt = f"{prompt}\n{message.author.display_name}: {message.content}"
+                #combined_prompt = f"{prompt}\n{message.author.display_name}: {message.content}"
 
-                response = model.generate_content(combined_prompt + " (can you keep your response to less than 2000 characters please)")
-                await message.channel.send(response.text)
+                #response = model.generate_content(combined_prompt + " (can you keep your response to less than 2000 characters please)")
+                #await message.channel.send(response.text)
 
 async def setup(bot):
     await bot.add_cog(adventure(bot))

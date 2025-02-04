@@ -5,22 +5,29 @@ import re
 import threading
 
 from discord.ext import commands, tasks
+from datetime import datetime
 
 from commands.translate_command import add_translate_command
 from commands.deathroll_command import add_deathroll_command
 from commands.helpcommand import CustomHelpCommand
 
+import moviepy.editor as mp
 from moviepy.editor import VideoFileClip, AudioFileClip, concatenate_videoclips
 from moviepy.video.compositing.CompositeVideoClip import CompositeVideoClip
 
 intents = discord.Intents.default()
 intents.message_content = True
+intents.members = True
+intents.voice_states = True
 
 reddit = praw.Reddit(
-    client_id="YOUR_ID_HERE",
-    client_secret="YOUR_KEY_HERE",
+    client_id="hgXRT4GQb_GZYdFEJbynJw",
+    client_secret="KsiI1DyMIC9J2t-Oaz79kt6nswq96g",
     user_agent="ipad bot v1 by /u/level2isbetter"
 )
+
+GLOBE_ID = 157322236796207104
+CLR_ID = 124385522196938752
 
 def get_media_url(reddit_link):
     submission = reddit.submission(url=reddit_link)
@@ -48,11 +55,13 @@ def input_thread(bot):
             print(f'No channel found with id {channel_id}')
 
 url_mappings = {
-    'https://x.com': 'https://fixupx.com',
+    'https://x.com': 'https://stupidpenisx.com',
     'https://twitter.com': 'https://fxtwitter.com',
     'https://www.tiktok.com': 'https://www.vxtiktok.com',
-    'https://www.instagram.com': 'https://www.ddinstagram.com'
+    'https://www.reddit.com': 'https://www.vxreddit.com'
 }
+
+instagram2 = 'https://www.instagramez.com'
 
 # Create a bot instance
 bot = commands.Bot(command_prefix='.', intents=intents, case_insensitive=True)
@@ -78,10 +87,6 @@ async def on_ready():
         for cog in active_cogs['global']:
             if os.path.exists(f"./ipadbot/cogs/{cog}.py") and f"cogs.{cog}" not in bot.extensions:
                 await bot.load_extension(f"cogs.{cog}")
-    #for filename in os.listdir("./ipadbot/cogs"):
-        #if filename.endswith(".py"):
-            #await bot.load_extension(f"cogs.{filename[:-3]}")
-            #print(f"cog successfully loaded: {filename[:-3]}")
 
     
     await bot.load_extension("commands.cog_management")
@@ -92,6 +97,39 @@ async def on_ready():
     print(f'We have logged in as {bot.user}')
 
     threading.Thread(target=input_thread, args=(bot,), daemon=True).start()
+
+deafened_start_time = {}
+
+@bot.event
+async def on_voice_state_update(member, before, after):
+    if member.id == GLOBE_ID:
+        if before.channel is None and after.channel is not None:
+            print(f"{member.name} has joined {after.channel.name}")
+
+            count_file = "./ipadbot/files/globecount.txt"
+            if os.path.exists(count_file):
+                with open(count_file, "r") as file:
+                    count = int(file.read().strip())
+            else:
+                count = 0
+            
+            count += 1
+            
+            with open(count_file, "w") as file:
+                file.write(str(count))
+
+            if not before.self_deaf and after.self_deaf:
+                deafened_start_time[member.id] = datetime.now()
+                print(f"{member.name} has deafened themselves")
+
+            if before.self_deaf and not after.self_deaf:
+                if member.id in deafened_start_time:
+                    deafened_duration = datetime.now() - deafened_start_time[member.id]
+                    del deafened_start_time[member.id]
+                    
+                    duration_file = ".ipadbot/files/deafened.txt"
+                    with open(duration_file, "a") as file:
+                        file.write(f"{member.name} deafened for {deafened_duration}\n")
 
 # Logout command
 @bot.command()
@@ -141,16 +179,6 @@ async def clear(ctx, amount: int):
     else:
         await ctx.channel.purge(limit=amount+1)
 
-# Notifies if a user edited their message
-#@bot.event
-#async def on_message_edit(before, after):
-#    await before.channel.send(f'{before.author} edited their message from "{before.content}" to "{after.content}"')
-
-# Notifies if a user deleted their message
-#@bot.event
-#async def on_message_delete(message):
-#    await message.channel.send(f'{message.author} deleted their message: "{message.content}"')
-
 # Random react when the bot is mentioned
 @bot.event
 async def on_message(message):
@@ -165,22 +193,31 @@ async def on_message(message):
             await message.add_reaction("<a:duckass:1235423421974712402>")
     elif message.author.id == 120666750835490819:
         emojis = ["🇱", "🇪", "🇸", "🇧", "🇮", "🇦", "🇳"]
-        kreact = random.randint(1,20)
+        kreact = random.randint(1,100)
         if kreact == 1:
             for emoji in emojis:
                 await message.add_reaction(emoji)
-#    elif message.author.id == 463526991472230400:
-#        zreact = random.randint(1,20)
-#        if zreact == 1:
-#            await message.add_reaction("👎")
-
+    
     for original_url, new_url in url_mappings.items():
         if original_url in message.content:
             new_link = message.content.replace(original_url, new_url)
             await message.delete()
-            await message.channel.send(f"{new_link} fixed link from {message.author.mention}")
-            break
-    else:
+            sent_message = await message.channel.send(f"{new_link} fixed link from {message.author.mention}")
+        elif 'https://www.instagram.com' in message.content:
+            new_link = message.content.replace('https://www.instagram.com', 'https://www.ddinstagram.com')
+            await message.delete()
+            sent_message = await message.channel.send(f"{new_link} fixed link from {message.author.mention}")
+            await asyncio.sleep(3)
+
+            try:
+                sent_message = await message.channel.fetch_message(sent_message.id)
+                if not sent_message.embeds:
+                    final_link = message.content.replace('https://www.instagram.com', 'https://www.instagramez.com')
+                    await sent_message.delete()
+                    await message.channel.send(f"{final_link} fixed link from {message.author.mention}")
+            except discord.errors.NotFound:
+                await message.channel.send("message not found")
+    """else:
         if 'reddit.com' in message.content:
             video_url, audio_url = get_media_url(message.content)
 
@@ -208,7 +245,7 @@ async def on_message(message):
                 else:
                     await message.channel.send(content=f"embedding reddit video from " + message.author.mention, file=discord.File("./ipadbot/media/final.mp4"))
 
-    # Process commands after checking for the mention
+    # Process commands after checking for the mention"""
     await bot.process_commands(message)
 
 # Read the token from a file
