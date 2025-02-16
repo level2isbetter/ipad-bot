@@ -7,7 +7,7 @@ class DataExtraction(commands.Cog):
         self.bot = bot
 
     @commands.command()
-    async def extractmsg(self, ctx, user_id: int, limit: int = 100):
+    async def extractmsg(self, ctx, user_id: int, limit: int = 1000):
         """Extract messages from a specified user across all channels."""
         user = self.bot.get_user(user_id)
         if not user:
